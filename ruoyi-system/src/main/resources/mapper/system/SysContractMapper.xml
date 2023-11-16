@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.system.mapper.SysContractMapper">
+    <resultMap id="baseMap" type="com.ruoyi.common.core.domain.entity.ContractInfo">
+        <result column="id" property="id" jdbcType="INTEGER"/>
+        <result column="uuid" property="uuid" jdbcType="VARCHAR"/>
+        <result column="contract_name" property="contractName" jdbcType="VARCHAR"/>
+        <result column="contract_type" property="contractType" jdbcType="VARCHAR"/>
+        <result column="contract_template" property="contractTemplate" jdbcType="VARCHAR"/>
+        <result column="contract_template_name" property="contractTemplateName" jdbcType="VARCHAR"/>
+        <result column="contract_file" property="contractFile" jdbcType="VARCHAR"/>
+        <result column="contract_file_name" property="contractFileName" jdbcType="VARCHAR"/>
+        <result column="need_law_supervise" property="needLawSupervise" jdbcType="INTEGER"/>
+        <result column="not_supervise_reason" property="notSuperviseReason" jdbcType="INTEGER"/>
+        <result column="contract_status" property="contractStatus" jdbcType="VARCHAR"/>
+        <result column="owner" property="owner" jdbcType="VARCHAR"/>
+        <result column="verify_result" property="verifyResult" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="DATE"/>
+        <result column="update_time" property="updateTime" jdbcType="DATE"/>
+    </resultMap>
+
+
+    <sql id="userCols">
+        uuid
+        , contract_name, contract_type, contract_template, contract_template_name, contract_file,
+        contract_file_name, need_law_supervise, not_supervise_reason, contract_status, owner, verify_result,
+        create_time, update_time
+    </sql>
+
+
+    <insert id="saveContract" parameterType="com.ruoyi.common.core.domain.entity.ContractInfo">
+        REPLACE INTO sys_contract_info
+        (<include refid="userCols"></include>)
+        VALUES
+        (
+        #{contractInfo.uuid},
+        #{contractInfo.contractName},
+        #{contractInfo.contractType},
+        #{contractInfo.contractTemplate},
+        #{contractInfo.contractTemplateName},
+        #{contractInfo.contractFile},
+        #{contractInfo.contractFileName},
+        #{contractInfo.needLawSupervise},
+        #{contractInfo.notSuperviseReason},
+        #{contractInfo.contractStatus},
+        #{contractInfo.owner},
+        #{contractInfo.verifyResult},
+        #{contractInfo.createTime},
+        NOW()
+        )
+    </insert>
+
+</mapper>
