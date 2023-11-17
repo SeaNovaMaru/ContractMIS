@@ -80,7 +80,7 @@
 <script>
 
 import {getToken} from "../../../utils/auth";
-import {saveContract} from "../../../api/contract/contract";
+import {saveContract, submitContract} from "../../../api/contract/contract";
 
 export default {
   components: {},
@@ -88,6 +88,7 @@ export default {
   data() {
     return {
       formData: {
+        uuid: null,
         contractType: null,
         contractFile: null,
         contractFileName: null,
@@ -164,8 +165,15 @@ export default {
   methods: {
     submitForm() {
       this.$refs['elForm'].validate(valid => {
-        if (!valid) return
-        // TODO 提交表单
+        if (!valid) {
+          this.$message.error("合同名称不得为空!");
+        } else {
+          submitContract(this.formData).then(response => {
+            if (response.code === 200) {
+              this.$modal.msgSuccess("提交成功");
+            }
+          });
+        }
       });
     },
     resetForm() {
@@ -178,6 +186,7 @@ export default {
       }
       saveContract(this.formData).then(response => {
         if (response.code === 200) {
+          this.formData.uuid = response.msg;
           this.$modal.msgSuccess("保存成功");
         }
       });
@@ -204,6 +213,7 @@ export default {
       this.formData.contractTemplate = response.fileName;
       this.formData.contractTemplateName = response.originalFilename;
     }
+    // todo onpreview
   }
 }
 </script>

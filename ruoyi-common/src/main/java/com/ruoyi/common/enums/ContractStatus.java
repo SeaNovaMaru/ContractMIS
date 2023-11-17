@@ -9,7 +9,8 @@ public enum ContractStatus {
     CONTRACT_SUPERVISION("2", "内部审核"),
     LAW_SUPERVISION("3", "法律审查"),
     CONTACT_COMPARING("4", "合同比对"),
-    CONTRACT_ARCHIVE("5", "归档");
+    CONTRACT_ARCHIVE("5", "归档"),
+    CONTRACT_INVALID("6", "合同作废");
 
 
     private final String status;

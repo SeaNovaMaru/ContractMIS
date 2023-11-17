@@ -140,6 +140,8 @@
 <script>
 import { listType, getType, delType, addType, updateType } from "@/api/system/dict/type";
 
+// 1.
+
 export default {
   name: "Dict",
   dicts: ['sys_contract_status'],

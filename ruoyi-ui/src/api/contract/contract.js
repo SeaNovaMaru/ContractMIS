@@ -7,3 +7,11 @@ export function saveContract(data) {
     data: data
   })
 }
+
+export function submitContract(data) {
+  return request({
+    url: '/contract/submit',
+    method: 'post',
+    data: data
+  })
+}

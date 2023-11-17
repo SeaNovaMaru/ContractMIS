@@ -7,7 +7,7 @@
         <result column="id" property="id" jdbcType="INTEGER"/>
         <result column="uuid" property="uuid" jdbcType="VARCHAR"/>
         <result column="contract_name" property="contractName" jdbcType="VARCHAR"/>
-        <result column="contract_type" property="contractType" jdbcType="VARCHAR"/>
+        <result column="contract_type" property="contractType" jdbcType="INTEGER"/>
         <result column="contract_template" property="contractTemplate" jdbcType="VARCHAR"/>
         <result column="contract_template_name" property="contractTemplateName" jdbcType="VARCHAR"/>
         <result column="contract_file" property="contractFile" jdbcType="VARCHAR"/>
@@ -52,4 +52,100 @@
         )
     </insert>
 
+    <update id="updateContract" parameterType="com.ruoyi.common.core.domain.entity.ContractInfo">
+        update sys_contract_info
+        <set>
+            <if test="contractInfo.contractName != null and contractInfo.contractName != ''">
+                contract_name=#{contractInfo.contractName},
+            </if>
+            <if test="contractInfo.contractType != null">
+                contract_type=#{contractInfo.contractType},
+            </if>
+            <if test="contractInfo.contractTemplate != null and contractInfo.contractTemplate != ''">
+                contract_template=#{contractInfo.contractTemplate},
+            </if>
+            <if test="contractInfo.contractTemplateName != null and contractInfo.contractTemplateName != ''">
+                contract_template_name=#{contractInfo.contractTemplateName},
+            </if>
+            <if test="contractInfo.contractFile != null and contractInfo.contractFile != ''">
+                contract_file=#{contractInfo.contractFile},
+            </if>
+            <if test="contractInfo.contractFileName != null and contractInfo.contractFileName != ''">
+                contract_file_name=#{contractInfo.contractFileName},
+            </if>
+            <if test="contractInfo.needLawSupervise != null">
+                need_law_supervise=#{contractInfo.needLawSupervise},
+            </if>
+            <if test="contractInfo.notSuperviseReason != null">
+                not_supervise_reason=#{contractInfo.notSuperviseReason},
+            </if>
+            <if test="contractInfo.contractStatus != null and contractInfo.contractStatus != ''">
+                contract_status=#{contractInfo.contractStatus},
+            </if>
+            <if test="contractInfo.owner != null and contractInfo.owner != ''">
+                owner=#{contractInfo.owner},
+            </if>
+            <if test="contractInfo.verifyResult != null and contractInfo.verifyResult != ''">
+                verifyResult=#{contractInfo.verifyResult},
+            </if>
+            uuid = #{contractInfo.uuid}, update_time = NOW()
+        </set>
+        where uuid = #{contractInfo.uuid}
+    </update>
+
+    <select id="queryList" resultType="com.ruoyi.common.core.domain.model.ContractListRes">
+        select distinct
+        contract.uuid as uuid,
+        contract.contract_name as contractName,
+        contract.contract_type as contractType,
+        contract.need_law_supervise as needLawSupervise,
+        contract.not_supervise_reason as notSuperviseReason,
+        contract.owner as owner,
+        contract.create_time as createTime,
+        contract.update_time as updateTime
+        from
+        sys_contract_info contract
+        left join sys_execution_info execution on execution.uuid = contract.uuid
+        where 1=1
+        <if test="param.userRoles != null and param.userRoles.size() > 0 and param.userId != null">
+            AND
+            <foreach collection="param.userRoles" item="role" separator="OR" open="(" close=")">
+                <choose>
+                    <when test="role ==1">
+                        (contract.owner is not null)
+                    </when>
+                    <when test="role == 2">
+                        (contract.owner = #{param.userId})
+                    </when>
+                    <when test="role == 3">
+                        (contract.owner = #{param.userId} OR contract.contract_status = 2 OR execution.execution_user =
+                        #{param.userId})
+                    </when>
+                    <when test="role == 4">
+                        (contract.owner = #{param.userId} OR contract.contract_status = 3 OR execution.execution_user =
+                        #{param.userId})
+                    </when>
+                    <when test="role == 5">
+                        (contract.owner = #{param.userId} OR contract.contract_status = 4 OR execution.execution_user =
+                        #{param.userId})
+                    </when>
+                    <otherwise>
+                        (contract.owner = #{param.userId})
+                    </otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="param.contractName != null and param.contractName != ''">
+            AND contract.contract_name like concat('%', #{param.contractName}, '%')
+        </if>
+        <if test="param.contractStatus != null and param.contractStatus != ''">
+            AND contract.contract_status = #{param.contractStatus}
+        </if>
+    </select>
+
+    <select id="getDetail" resultMap="baseMap">
+        select *
+        from sys_contract_info
+        where uuid = #{uuid}
+    </select>
 </mapper>
