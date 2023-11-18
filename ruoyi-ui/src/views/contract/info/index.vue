@@ -4,6 +4,7 @@
       <el-col :span="24" class="card-box">
         <el-card>
           <div slot="header"><span>合同基本信息</span></div>
+
           <div class="el-table el-table--enable-row-hover el-table--medium">
             <el-row :gutter="15">
               <el-form ref="elForm" :model="formData" :rules="rules" size="medium" label-width="100px">
@@ -20,7 +21,7 @@
                   <el-form-item v-if="formData.contractType === 2" label-width="150px" label="导入范本" prop="contractTemplate" required>
                     <el-upload ref="contractTemplate" :file-list="contractTemplateList" :action="fileAction"
                                :before-upload="contractTemplateBeforeUpload" :headers="headers"
-                               :on-success="uploadTemplateSuccess" :limit="1">
+                               :on-success="uploadTemplateSuccess" :on-preview="previewFile" :limit="1" :on-exceed="handleExceed">
                       <el-button size="small" type="primary" icon="el-icon-upload">点击上传</el-button>
                     </el-upload>
                   </el-form-item>
@@ -29,7 +30,7 @@
                   <el-form-item label-width="150px" label="导入合同" prop="contractFile" required>
                     <el-upload ref="contractFile" :file-list="contractFileList" :action="fileAction"
                                :before-upload="contractFileBeforeUpload" :headers="headers"
-                               :on-success="uploadContractSuccess" :limit="1">
+                               :on-success="uploadContractSuccess" :on-preview="previewFile" :limit="1" :on-exceed="handleExceed">
                       <el-button size="small" type="primary" icon="el-icon-upload">点击上传</el-button>
                     </el-upload>
                   </el-form-item>
@@ -80,11 +81,13 @@
 <script>
 
 import {getToken} from "../../../utils/auth";
-import {saveContract, submitContract} from "../../../api/contract/contract";
+import {getContractDetail, saveContract, submitContract} from "../../../api/contract/contract";
 
 export default {
-  components: {},
-  props: [],
+  components: {
+  },
+  props: {
+  },
   data() {
     return {
       formData: {
@@ -160,7 +163,38 @@ export default {
   },
   computed: {},
   watch: {},
-  created() {},
+  created() {
+    let uuid = this.$route.query && this.$route.query.uuid;
+    let query = {
+      uuid: uuid
+    }
+    if (uuid) {
+      getContractDetail(query).then((response) => {
+        this.formData = response.data;
+        console.log(this.fileAction);
+        if (this.formData.contractFile !== null && this.formData.contractFile !== undefined) {
+          this.contractFileList.push({
+            url: this.formData.contractFile,
+            name: this.formData.contractFileName,
+            file: new File([], this.formData.contractFileName),
+            response: {
+              url: this.formData.contractFile
+            }
+          })
+        }
+        if (this.formData.contractTemplate !== null && this.formData.contractTemplateName !== undefined) {
+          this.contractTemplateList.push({
+            url: this.formData.contractTemplate,
+            name: this.formData.contractTemplateName,
+            file: new File([], this.formData.contractTemplateName),
+            response: {
+              url: this.formData.contractTemplate
+            }
+          })
+        }
+      })
+    }
+  },
   mounted() {},
   methods: {
     submitForm() {
@@ -170,6 +204,7 @@ export default {
         } else {
           submitContract(this.formData).then(response => {
             if (response.code === 200) {
+              this.$tab.closeCurrentPage();
               this.$modal.msgSuccess("提交成功");
             }
           });
@@ -206,14 +241,19 @@ export default {
       return isRightSize;
     },
     uploadContractSuccess(response, file, fileList) {
-      this.formData.contractFile = response.fileName;
+      this.formData.contractFile = response.url;
       this.formData.contractFileName = response.originalFilename;
     },
     uploadTemplateSuccess(response, file, fileList) {
-      this.formData.contractTemplate = response.fileName;
+      this.formData.contractTemplate = response.url;
       this.formData.contractTemplateName = response.originalFilename;
+    },
+    previewFile(file) {
+      window.open(file.response.url);
+    },
+    handleExceed() {
+      this.$message.error("最多只能上传一个文件！");
     }
-    // todo onpreview
   }
 }
 </script>

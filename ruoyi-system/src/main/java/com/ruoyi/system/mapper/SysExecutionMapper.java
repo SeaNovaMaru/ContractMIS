@@ -9,5 +9,5 @@ public interface SysExecutionMapper {
 
     int insertExecution(@Param("executionInfo") ContractExecutionInfo executionInfo);
 
-    List<ContractExecutionInfo> queryExcecutionList(@Param("uuid") String uuid);
+    List<ContractExecutionInfo> queryExecutionList(@Param("uuid") String uuid);
 }

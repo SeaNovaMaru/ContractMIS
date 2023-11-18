@@ -107,6 +107,18 @@ export const dynamicRoutes = [
     ]
   },
   {
+    path: '/contract/detail',
+    hidden: true,
+    component: Layout,
+    permissions: ['contract:detail:info'],
+    children: [{
+      path: '',
+      component: () => import('@/views/contract/detail/info'),
+      name: 'ContractDetail',
+      meta: {title: '合同详情', activeMenu: '/contract/record'}
+    }]
+  },
+  {
     path: '/system/role-auth',
     component: Layout,
     hidden: true,
@@ -161,7 +173,7 @@ export const dynamicRoutes = [
         meta: { title: '修改生成配置', activeMenu: '/tool/gen' }
       }
     ]
-  }
+  },
 ]
 
 // 防止连续点击多次路由报错
@@ -169,7 +181,8 @@ let routerPush = Router.prototype.push;
 let routerReplace = Router.prototype.replace;
 // push
 Router.prototype.push = function push(location) {
-  return routerPush.call(this, location).catch(err => err)
+  console.log(location);
+  return routerPush.call(this, location).catch(err => console.log(err))
 }
 // replace
 Router.prototype.replace = function push(location) {

@@ -67,5 +67,9 @@ export default {
   // 修改tab页签
   updatePage(obj) {
     return store.dispatch('tagsView/updateVisitedView', obj);
+  },
+  closeCurrentPage() {
+    store.dispatch("tagsView/delView", router.currentRoute);
+    return router.go(-1);
   }
 }

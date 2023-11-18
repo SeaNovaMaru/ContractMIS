@@ -76,9 +76,8 @@ public class SysContractServiceImpl implements ISysContractService {
         ContractExecutionInfo executionInfo = new ContractExecutionInfo();
         executionInfo.setUuid(contractInfo.getUuid());
         executionInfo.setContractStatus(ContractStatus.CONTACT_EDITING.getStatus());
-        executionInfo.setExecutionUser(SecurityUtils.getLoginUser().getUserId().toString());
+        executionInfo.setExecutionUser(Math.toIntExact(SecurityUtils.getLoginUser().getUserId()));
         executionInfo.setExecutionOperation(ContractExecution.CONTACT_SUBMIT.getStatus());
-        executionInfo.setExecuteTime(LocalDateTime.now());
         executionMapper.insertExecution(executionInfo);
         return contractMapper.saveContract(contractInfo);
     }
@@ -100,8 +99,7 @@ public class SysContractServiceImpl implements ISysContractService {
         contractMapper.updateContract(contractInfo);
         ContractExecutionInfo executionInfo = new ContractExecutionInfo();
         BeanUtils.copyBeanProp(executionInfo, executeContractParam);
-        executionInfo.setExecutionUser(SecurityUtils.getLoginUser().getUserId().toString());
-        executionInfo.setExecuteTime(LocalDateTime.now());
+        executionInfo.setExecutionUser(Math.toIntExact(SecurityUtils.getLoginUser().getUserId()));
         return executionMapper.insertExecution(executionInfo);
     }
 
@@ -127,7 +125,7 @@ public class SysContractServiceImpl implements ISysContractService {
 
     @Override
     public List<ContractExecutionInfo> getExecutionInfoList(String uuid) {
-        return executionMapper.queryExcecutionList(uuid);
+        return executionMapper.queryExecutionList(uuid);
     }
 
     @Override

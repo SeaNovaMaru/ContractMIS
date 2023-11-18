@@ -39,6 +39,7 @@ const permission = {
           const sidebarRoutes = filterAsyncRouter(sdata)
           const rewriteRoutes = filterAsyncRouter(rdata, false, true)
           const asyncRoutes = filterDynamicRoutes(dynamicRoutes);
+          console.log(asyncRoutes);
           rewriteRoutes.push({ path: '*', redirect: '/404', hidden: true })
           router.addRoutes(asyncRoutes);
           commit('SET_ROUTES', rewriteRoutes)
@@ -111,6 +112,7 @@ function filterChildren(childrenMap, lastRouter = false) {
 // 动态路由遍历，验证是否具备权限
 export function filterDynamicRoutes(routes) {
   const res = []
+  console.log(routes);
   routes.forEach(route => {
     if (route.permissions) {
       if (auth.hasPermiOr(route.permissions)) {

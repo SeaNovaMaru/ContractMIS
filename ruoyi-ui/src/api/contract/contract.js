@@ -15,3 +15,27 @@ export function submitContract(data) {
     data: data
   })
 }
+
+export function getContractList(data) {
+  return request({
+    url: '/contract/list',
+    method: 'post',
+    data: data
+  })
+}
+
+export function getContractDetail(query) {
+  return request({
+    url: '/contract/detail',
+    method: 'get',
+    params: query
+  })
+}
+
+export function getExecutionList(query) {
+  return request({
+    url: '/contract/execution/list',
+    method: 'get',
+    params: query
+  })
+}

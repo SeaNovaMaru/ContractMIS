@@ -15,6 +15,9 @@ public class ContractListRes {
     @ApiModelProperty("合同类别")
     private Integer contractType;
 
+    @ApiModelProperty("合同状态")
+    private Integer contractStatus;
+
     @ApiModelProperty("是否需要法审")
     private Integer needLawSupervise;
 
@@ -22,7 +25,10 @@ public class ContractListRes {
     private Integer notSuperviseReason;
 
     @ApiModelProperty("合同发起人")
-    private Integer owner;
+    private String owner;
+
+    @ApiModelProperty("合同发起人id")
+    private Integer userId;
 
     @ApiModelProperty("合同发起时间")
     private String createTime;

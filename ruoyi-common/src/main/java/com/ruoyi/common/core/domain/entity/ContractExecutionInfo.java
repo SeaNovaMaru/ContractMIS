@@ -2,8 +2,6 @@ package com.ruoyi.common.core.domain.entity;
 
 import lombok.Data;
 
-import java.time.LocalDateTime;
-
 @Data
 public class ContractExecutionInfo {
 
@@ -25,7 +23,9 @@ public class ContractExecutionInfo {
     /**
      * 操作用户
      */
-    private String executionUser;
+    private Integer executionUser;
+
+    private String executionUserName;
 
     /**
      * 处理操作
@@ -45,5 +45,6 @@ public class ContractExecutionInfo {
     /**
      * 执行时间
      */
-    private LocalDateTime executeTime;
+    private String executeTime;
+
 }

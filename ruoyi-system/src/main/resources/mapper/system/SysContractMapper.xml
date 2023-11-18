@@ -16,6 +16,7 @@
         <result column="not_supervise_reason" property="notSuperviseReason" jdbcType="INTEGER"/>
         <result column="contract_status" property="contractStatus" jdbcType="VARCHAR"/>
         <result column="owner" property="owner" jdbcType="VARCHAR"/>
+        <result column="userName" property="userName" jdbcType="VARCHAR"/>
         <result column="verify_result" property="verifyResult" jdbcType="VARCHAR"/>
         <result column="create_time" property="createTime" jdbcType="DATE"/>
         <result column="update_time" property="updateTime" jdbcType="DATE"/>
@@ -97,15 +98,18 @@
         select distinct
         contract.uuid as uuid,
         contract.contract_name as contractName,
+        contract.contract_status as contractStatus,
         contract.contract_type as contractType,
         contract.need_law_supervise as needLawSupervise,
         contract.not_supervise_reason as notSuperviseReason,
-        contract.owner as owner,
+        userInfo.nick_name as owner,
+        contract.owner as userId,
         contract.create_time as createTime,
         contract.update_time as updateTime
         from
         sys_contract_info contract
         left join sys_execution_info execution on execution.uuid = contract.uuid
+        inner join sys_user userInfo on userInfo.user_id = contract.owner
         where 1=1
         <if test="param.userRoles != null and param.userRoles.size() > 0 and param.userId != null">
             AND
@@ -144,8 +148,9 @@
     </select>
 
     <select id="getDetail" resultMap="baseMap">
-        select *
-        from sys_contract_info
+        select contract.*, userInfo.nick_name as userName
+        from sys_contract_info contract
+                 left join sys_user userInfo on userInfo.user_id = contract.owner
         where uuid = #{uuid}
     </select>
 </mapper>

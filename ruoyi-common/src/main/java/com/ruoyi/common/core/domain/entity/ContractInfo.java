@@ -68,6 +68,11 @@ public class ContractInfo {
     private String owner;
 
     /**
+     * 合同发起人名字
+     **/
+    private String userName;
+
+    /**
      * 比对意见
      */
     private String verifyResult;
