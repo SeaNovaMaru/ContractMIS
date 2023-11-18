@@ -170,7 +170,7 @@ export default {
     }
     if (uuid) {
       getContractDetail(query).then((response) => {
-        this.formData = response.data;
+        this.formData = response.contractInfo;
         console.log(this.fileAction);
         if (this.formData.contractFile !== null && this.formData.contractFile !== undefined) {
           this.contractFileList.push({

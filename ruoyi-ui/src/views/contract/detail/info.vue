@@ -6,8 +6,11 @@
           <div slot="header" style="display: flex; align-items: center;">
             <span>合同基本信息</span>
             <div class="right-components">
-              <el-button type="primary" size="small" @click="submitForm">提交</el-button>
-              <el-button size="small" @click="saveForm">保存</el-button>
+              <el-button type="primary" v-if="permissionData.submit" size="small" @click="submitForm">提交</el-button>
+              <el-button type="primary" v-if="permissionData.edit" size="small" @click="editForm">修改</el-button>
+              <el-button type="primary" v-if="permissionData.agree" size="small" @click="submitForm">同意</el-button>
+              <el-button type="danger" v-if="permissionData.disagree" size="small" @click="submitForm">驳回</el-button>
+              <el-button size="small" @click="closeTab">关闭</el-button>
             </div>
           </div>
           <div class="el-table el-table--enable-row-hover el-table--medium">
@@ -96,6 +99,7 @@ export default {
   },
   data() {
     return {
+      userId: 0,
       formData: {
         uuid: null,
         contractType: null,
@@ -110,7 +114,7 @@ export default {
         notSuperviseReason: null,
         contractStatus: null,
       },
-      rules: {},
+      permissionData: {},
       fileAction: process.env.VUE_APP_BASE_API + '/common/upload',
       headers: {
         Authorization: "Bearer " + getToken(),
@@ -122,13 +126,17 @@ export default {
   computed: {},
   watch: {},
   created() {
+    this.userId = this.$store.state.user.id.toString();
+    this.roles = this.$store.state.user.roles;
+    console.log(this.roles);
     let uuid = this.$route.query && this.$route.query.uuid;
     let query = {
       uuid: uuid
     }
     if (uuid) {
       getContractDetail(query).then((response) => {
-        this.formData = response.data;
+        this.formData = response.contractInfo;
+        this.permissionData = response.permissionInfo;
         console.log(this.fileAction);
         if (this.formData.contractFile !== null && this.formData.contractFile !== undefined) {
           this.contractFileList.push({
@@ -172,18 +180,12 @@ export default {
     resetForm() {
       this.$refs['elForm'].resetFields();
     },
-    saveForm() {
-      if (this.formData.contractName === undefined || this.formData.contractName === '') {
-        this.$message.error("合同名称不得为空!");
-        return;
-      }
-      saveContract(this.formData).then(response => {
-        if (response.code === 200) {
-          this.formData.uuid = response.msg;
-          this.$modal.msgSuccess("保存成功");
-        }
-      });
+    closeTab() {
+      this.$tab.closeCurrentPage();
     },
+    editForm() {
+
+    }
   }
 }
 </script>

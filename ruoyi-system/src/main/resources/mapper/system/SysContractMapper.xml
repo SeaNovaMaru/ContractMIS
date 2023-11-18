@@ -94,7 +94,7 @@
         where uuid = #{contractInfo.uuid}
     </update>
 
-    <select id="queryList" resultType="com.ruoyi.common.core.domain.model.ContractListRes">
+    <select id="queryList" resultType="com.ruoyi.common.core.domain.model.contract.ContractListRes">
         select distinct
         contract.uuid as uuid,
         contract.contract_name as contractName,

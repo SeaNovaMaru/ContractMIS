@@ -1,8 +1,8 @@
 package com.ruoyi.system.mapper;
 
 import com.ruoyi.common.core.domain.entity.ContractInfo;
-import com.ruoyi.common.core.domain.model.ContractListRes;
-import com.ruoyi.common.core.domain.model.QueryListParam;
+import com.ruoyi.common.core.domain.model.contract.ContractListRes;
+import com.ruoyi.common.core.domain.model.contract.QueryListParam;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;

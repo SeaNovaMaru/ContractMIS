@@ -2,9 +2,9 @@ package com.ruoyi.web.controller.contract;
 
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
-import com.ruoyi.common.core.domain.model.ExecuteContractParam;
-import com.ruoyi.common.core.domain.model.QueryListParam;
-import com.ruoyi.common.core.domain.model.SaveContractParam;
+import com.ruoyi.common.core.domain.model.contract.ExecuteContractParam;
+import com.ruoyi.common.core.domain.model.contract.QueryListParam;
+import com.ruoyi.common.core.domain.model.contract.SaveContractParam;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.system.service.ISysContractService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +65,7 @@ public class ContractController extends BaseController {
 
     @GetMapping("/detail")
     public AjaxResult detail(@RequestParam("uuid") String uuid) {
-        return AjaxResult.success(contractService.getContractInfo(uuid));
+        return contractService.getContractInfo(uuid);
     }
 
     @GetMapping("/execution/list")

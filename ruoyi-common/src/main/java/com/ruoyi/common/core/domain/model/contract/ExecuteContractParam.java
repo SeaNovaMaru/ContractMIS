@@ -1,4 +1,4 @@
-package com.ruoyi.common.core.domain.model;
+package com.ruoyi.common.core.domain.model.contract;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

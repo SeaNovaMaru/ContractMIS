@@ -4,14 +4,16 @@ import com.alibaba.fastjson2.JSON;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.ruoyi.common.constant.HttpStatus;
+import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.entity.ContractExecutionInfo;
 import com.ruoyi.common.core.domain.entity.ContractInfo;
 import com.ruoyi.common.core.domain.entity.SysRole;
-import com.ruoyi.common.core.domain.model.ContractListRes;
-import com.ruoyi.common.core.domain.model.ExecuteContractParam;
 import com.ruoyi.common.core.domain.model.LoginUser;
-import com.ruoyi.common.core.domain.model.QueryListParam;
-import com.ruoyi.common.core.domain.model.SaveContractParam;
+import com.ruoyi.common.core.domain.model.contract.ContractListRes;
+import com.ruoyi.common.core.domain.model.contract.ContractPermissionInfo;
+import com.ruoyi.common.core.domain.model.contract.ExecuteContractParam;
+import com.ruoyi.common.core.domain.model.contract.QueryListParam;
+import com.ruoyi.common.core.domain.model.contract.SaveContractParam;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.ContractExecution;
 import com.ruoyi.common.enums.ContractStatus;
@@ -119,8 +121,39 @@ public class SysContractServiceImpl implements ISysContractService {
     }
 
     @Override
-    public ContractInfo getContractInfo(String uuid) {
-        return contractMapper.getDetail(uuid);
+    public AjaxResult getContractInfo(String uuid) {
+        LoginUser user = SecurityUtils.getLoginUser();
+        List<SysRole> roles = user.getUser().getRoles();
+        AjaxResult ajaxResult = AjaxResult.success();
+        ContractInfo contractInfo = contractMapper.getDetail(uuid);
+        ajaxResult.put("contractInfo", contractInfo);
+        if (CollectionUtils.isEmpty(roles)) {
+            ajaxResult.put("permissionInfo", new ContractPermissionInfo());
+            return ajaxResult;
+        }
+        ajaxResult.put("contractInfo", contractInfo);
+        List<Long> roleIdList = roles.stream().map(SysRole::getRoleId).collect(Collectors.toList());
+        ContractPermissionInfo permissionInfo = new ContractPermissionInfo();
+        if (contractInfo.getOwner().equals(user.getUserId().toString())
+                && contractInfo.getContractStatus().equals(ContractStatus.CONTACT_EDITING.getStatus())) {
+            permissionInfo.setEdit(true);
+        }
+        if (roleIdList.contains(3L)
+                && contractInfo.getContractStatus().equals(ContractStatus.CONTRACT_SUPERVISION.getStatus())) {
+            permissionInfo.setAgree(true);
+            permissionInfo.setDisagree(true);
+        }
+        if (roleIdList.contains(4L)
+                && contractInfo.getContractStatus().equals(ContractStatus.LAW_SUPERVISION.getStatus())) {
+            permissionInfo.setSubmit(true);
+        }
+        if (roleIdList.contains(5L)
+                && contractInfo.getContractStatus().equals(ContractStatus.CONTACT_COMPARING.getStatus())) {
+            permissionInfo.setAgree(true);
+            permissionInfo.setDisagree(true);
+        }
+        ajaxResult.put("permissionInfo", permissionInfo);
+        return ajaxResult;
     }
 
     @Override

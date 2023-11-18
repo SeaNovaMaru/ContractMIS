@@ -1,10 +1,10 @@
 package com.ruoyi.system.service;
 
+import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.entity.ContractExecutionInfo;
-import com.ruoyi.common.core.domain.entity.ContractInfo;
-import com.ruoyi.common.core.domain.model.ExecuteContractParam;
-import com.ruoyi.common.core.domain.model.QueryListParam;
-import com.ruoyi.common.core.domain.model.SaveContractParam;
+import com.ruoyi.common.core.domain.model.contract.ExecuteContractParam;
+import com.ruoyi.common.core.domain.model.contract.QueryListParam;
+import com.ruoyi.common.core.domain.model.contract.SaveContractParam;
 import com.ruoyi.common.core.page.TableDataInfo;
 
 import java.util.List;
@@ -20,7 +20,7 @@ public interface ISysContractService {
 
     TableDataInfo tableDataInfo(QueryListParam queryListParam);
 
-    ContractInfo getContractInfo(String uuid);
+    AjaxResult getContractInfo(String uuid);
 
     List<ContractExecutionInfo> getExecutionInfoList(String uuid);
 
