@@ -24,4 +24,6 @@ public class ContractPermissionInfo {
      * 驳回按钮
      */
     private boolean disagree = false;
+
+    private boolean verify = false;
 }

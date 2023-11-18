@@ -149,8 +149,7 @@ public class SysContractServiceImpl implements ISysContractService {
         }
         if (roleIdList.contains(5L)
                 && contractInfo.getContractStatus().equals(ContractStatus.CONTACT_COMPARING.getStatus())) {
-            permissionInfo.setAgree(true);
-            permissionInfo.setDisagree(true);
+            permissionInfo.setVerify(true);
         }
         ajaxResult.put("permissionInfo", permissionInfo);
         return ajaxResult;

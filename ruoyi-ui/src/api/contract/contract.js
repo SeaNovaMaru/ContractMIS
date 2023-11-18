@@ -39,3 +39,11 @@ export function getExecutionList(query) {
     params: query
   })
 }
+
+export function executeProcess(data) {
+  return request({
+    url: '/contract/execute',
+    method: 'post',
+    data: data
+  })
+}

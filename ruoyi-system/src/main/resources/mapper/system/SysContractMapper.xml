@@ -87,7 +87,7 @@
                 owner=#{contractInfo.owner},
             </if>
             <if test="contractInfo.verifyResult != null and contractInfo.verifyResult != ''">
-                verifyResult=#{contractInfo.verifyResult},
+                verify_result=#{contractInfo.verifyResult},
             </if>
             uuid = #{contractInfo.uuid}, update_time = NOW()
         </set>

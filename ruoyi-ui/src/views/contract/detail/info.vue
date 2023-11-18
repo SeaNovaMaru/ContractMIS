@@ -8,8 +8,9 @@
             <div class="right-components">
               <el-button type="primary" v-if="permissionData.submit" size="small" @click="submitForm">提交</el-button>
               <el-button type="primary" v-if="permissionData.edit" size="small" @click="editForm">修改</el-button>
-              <el-button type="primary" v-if="permissionData.agree" size="small" @click="submitForm">同意</el-button>
-              <el-button type="danger" v-if="permissionData.disagree" size="small" @click="submitForm">驳回</el-button>
+              <el-button type="primary" v-if="permissionData.agree" size="small" @click="agreeForm">同意</el-button>
+              <el-button type="primary" v-if="permissionData.verify" size="small" @click="verify">比对</el-button>
+              <el-button type="danger" v-if="permissionData.disagree" size="small" @click="disagreeForm">驳回</el-button>
               <el-button size="small" @click="closeTab">关闭</el-button>
             </div>
           </div>
@@ -65,7 +66,7 @@
                   </el-form-item>
                 </el-col>
                 <el-col :span="24">
-                  <el-form-item label-width="150px" v-if="formData.contractStatus === 4" label="比对意见: " prop="verifyResult">
+                  <el-form-item label-width="150px" v-if="formData.verifyResult !== null" label="比对意见: " prop="verifyResult">
                     <span>{{this.formData.verifyResult}}</span>
                   </el-form-item>
                 </el-col>
@@ -80,13 +81,45 @@
       </el-col>
       <execution-table></execution-table>
     </el-row>
+    <!-- 合同比对 -->
+    <el-dialog title="合同比对" :visible.sync="visibleVerify" width="500px" append-to-body>
+      <el-form ref="verifyForm" :model="verifyForm" :rules="rulesVerify" label-width="80px">
+        <el-form-item label="生成比对" prop="verifyBtn">
+          <el-button type="primary" icon="el-icon-search" @click="generateResult" size="medium"> 生成比对结果 </el-button>
+        </el-form-item>
+        <el-form-item label="比对结果">
+          <el-input v-model="verifyForm.verifyResult" :disabled="true" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="agreeVerify">确 定</el-button>
+        <el-button type="danger" @click="disagreeVerify">驳 回</el-button>
+        <el-button @click="closeVerify">取 消</el-button>
+      </div>
+    </el-dialog>
+
+    <el-dialog title="法律审查" :visible.sync="visibleLaw" width="500px" append-to-body>
+      <el-form ref="lawForm" :model="lawForm" :rules="rulesLaw" label-width="100px">
+<!--        todo this serve as placeholder-->
+        <el-form-item label="法律意见书" prop="executionFile">
+          <el-upload ref="contractTemplate" :file-list="lawFileList" :action="fileAction" :headers="headers"
+                     :on-success="uploadExecutionSuccess" :limit="1">
+            <el-button size="small" type="primary" icon="el-icon-upload">点击上传</el-button>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitLaw">提 交</el-button>
+        <el-button @click="closeLaw">取 消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 
 import {getToken} from "../../../utils/auth";
-import {getContractDetail, saveContract, submitContract} from "../../../api/contract/contract";
+import {executeProcess, getContractDetail, saveContract, submitContract} from "../../../api/contract/contract";
 import ExecutionTable from "./ExecutionTable.vue";
 
 export default {
@@ -114,6 +147,16 @@ export default {
         notSuperviseReason: null,
         contractStatus: null,
       },
+      verifyForm: {
+        verifyResult: "",
+        verifyBtn: ""
+      },
+      lawForm: {
+        executionFile: "",
+        executionFileName: ""
+      },
+      visibleVerify: false,
+      visibleLaw: false,
       permissionData: {},
       fileAction: process.env.VUE_APP_BASE_API + '/common/upload',
       headers: {
@@ -121,6 +164,17 @@ export default {
       },
       contractFileList: [],
       contractTemplateList: [],
+      lawFileList: [],
+      rulesVerify: {
+        verifyResult: [{
+          required: true,
+          message: '请生成比对结果',
+          trigger: 'change'
+        }],
+      },
+      rulesLaw: {
+
+      }
     }
   },
   computed: {},
@@ -164,18 +218,7 @@ export default {
   mounted() {},
   methods: {
     submitForm() {
-      this.$refs['elForm'].validate(valid => {
-        if (!valid) {
-          this.$message.error("合同名称不得为空!");
-        } else {
-          submitContract(this.formData).then(response => {
-            if (response.code === 200) {
-              this.$tab.closeCurrentPage();
-              this.$modal.msgSuccess("提交成功");
-            }
-          });
-        }
-      });
+      this.visibleLaw = true;
     },
     resetForm() {
       this.$refs['elForm'].resetFields();
@@ -184,7 +227,112 @@ export default {
       this.$tab.closeCurrentPage();
     },
     editForm() {
-
+      let uuid = {
+        uuid: this.formData.uuid
+      }
+      this.$tab.openPage("合同拟定", '/contract/info', uuid);
+    },
+    verify() {
+      this.visibleVerify = true;
+    },
+    generateResult() {
+      // todo 接入比对接口
+      this.verifyForm.verifyResult = "比对不出来，暂时认为你是对的";
+    },
+    agreeForm() {
+      let data = {
+        uuid: this.formData.uuid,
+        contractStatus: this.formData.contractStatus,
+        executionOperation: 1,
+      }
+      executeProcess(data).then((response) => {
+        if (response.code === 200) {
+          this.$message.success("操作成功！")
+          this.closeTab();
+        }
+      });
+    },
+    disagreeForm() {
+      let data = {
+        uuid: this.formData.uuid,
+        contractStatus: this.formData.contractStatus,
+        executionOperation: 2,
+      }
+      executeProcess(data).then((response) => {
+        if (response.code === 200) {
+          this.$message.success("操作成功！")
+          this.closeTab();
+        }
+      });
+    },
+    agreeVerify() {
+      if (this.verifyForm.verifyResult === '') {
+        this.$message.error("必须提供比对结果!");
+      } else {
+        let data = {
+          uuid: this.formData.uuid,
+          contractStatus: this.formData.contractStatus,
+          executionOperation: 1,
+          verifyResult: this.verifyForm.verifyResult,
+        }
+        executeProcess(data).then((response) => {
+          if (response.code === 200) {
+            this.$message.success("操作成功！")
+            this.visibleVerify = false;
+            this.closeTab();
+          }
+        });
+      }
+    },
+    disagreeVerify() {
+      if (this.verifyForm.verifyResult === '') {
+        this.$message.error("必须提供比对结果!");
+      } else {
+        let data = {
+          uuid: this.formData.uuid,
+          contractStatus: this.formData.contractStatus,
+          executionOperation: 2,
+          verifyResult: this.verifyForm.verifyResult,
+        }
+        executeProcess(data).then((response) => {
+          if (response.code === 200) {
+            this.$message.success("操作成功！")
+            this.visibleVerify = false;
+            this.closeTab();
+          }
+        });
+      }
+    },
+    closeVerify() {
+      this.visibleVerify = false;
+    },
+    uploadExecutionSuccess(response) {
+      this.lawForm.executionFile = response.url;
+      this.lawForm.executionFileName = response.originalFilename;
+    },
+    submitLaw() {
+      if (this.lawForm.executionFile === '') {
+        // todo 之后要生成的
+        this.$message.error("必须上传法律意见书！");
+      } else {
+        let data = {
+          uuid: this.formData.uuid,
+          contractStatus: this.formData.contractStatus,
+          executionOperation: 0,
+          executionFile: this.lawForm.executionFile,
+          executionFileName: this.lawForm.executionFileName,
+        }
+        executeProcess(data).then((response) => {
+          if (response.code === 200) {
+            this.$message.success("操作成功！")
+            this.visibleLaw = false;
+            this.closeTab();
+          }
+        });
+      }
+    },
+    closeLaw() {
+      this.visibleLaw = false;
     }
   }
 }
