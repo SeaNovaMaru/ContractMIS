@@ -8,7 +8,7 @@ ruoyi:
   copyrightYear: 2023
   # 实例演示开关
   demoEnabled: true
-  # 文件路径 示例（ Windows配置D:/ruoyi/uploadPath，Linux配置 /home/ruoyi/uploadPath）
+  # 文件路径 示例（ Windows配置D:/ruoyi/uploadPath，Linux配置 /home/ruoyi/uploadPath）部署时需要改动
   profile: /Users/ruizhang/Documents/其他工作/files
   # 获取ip地址开关
   addressEnabled: false
@@ -129,3 +129,16 @@ xss:
   excludes: /system/notice
   # 匹配链接
   urlPatterns: /system/*,/monitor/*,/tool/*
+
+smart-contract:
+  peerEndPointIp: 117.186.118.22
+  peerEndPointPort: 17051
+  mspId: Org1MSP
+  channelName: mychannel
+  chaincodeName: basic
+  # 部署至生产环境时，需要改动
+  cryptoPath: /Users/ruizhang/Documents/其他工作/files/smartContractConfig/
+  certPath: /Users/ruizhang/Documents/其他工作/files/smartContractConfig/users/User1@org1.example.com/msp/signcerts/cert.pem
+  keyDirPath: /Users/ruizhang/Documents/其他工作/files/smartContractConfig/users/User1@org1.example.com/msp/keystore
+  tlsCertPath: /Users/ruizhang/Documents/其他工作/files/smartContractConfig/peers/peer0.org1.example.com/tls/ca.crt
+  overrideAuth: peer0.org1.example.com

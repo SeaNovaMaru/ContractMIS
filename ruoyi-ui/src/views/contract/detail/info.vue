@@ -16,7 +16,7 @@
           </div>
           <div class="el-table el-table--enable-row-hover el-table--medium">
             <el-row :gutter="15">
-              <el-form ref="elForm" :model="formData" :rules="rules" size="medium" label-width="100px">
+              <el-form ref="elForm" :model="formData" size="medium" label-width="100px">
                 <el-col :span="12">
                   <el-form-item label-width="150px" label="合同名称: " prop="contractName">
                     <span>{{this.formData.contractName}}</span>
@@ -82,7 +82,7 @@
       <execution-table></execution-table>
     </el-row>
     <!-- 合同比对 -->
-    <el-dialog title="合同比对" :visible.sync="visibleVerify" width="500px" append-to-body>
+    <el-dialog title="合同比对" :visible.sync="visibleVerify" v-loading="verifyForm.loading" width="500px" append-to-body>
       <el-form ref="verifyForm" :model="verifyForm" :rules="rulesVerify" label-width="80px">
         <el-form-item label="生成比对" prop="verifyBtn">
           <el-button type="primary" icon="el-icon-search" @click="generateResult" size="medium"> 生成比对结果 </el-button>
@@ -119,7 +119,13 @@
 <script>
 
 import {getToken} from "../../../utils/auth";
-import {executeProcess, getContractDetail, saveContract, submitContract} from "../../../api/contract/contract";
+import {
+  executeProcess,
+  getContractDetail,
+  saveContract,
+  submitContract,
+  verifyContractInfo
+} from "../../../api/contract/contract";
 import ExecutionTable from "./ExecutionTable.vue";
 
 export default {
@@ -149,7 +155,8 @@ export default {
       },
       verifyForm: {
         verifyResult: "",
-        verifyBtn: ""
+        verifyBtn: "",
+        loading: false,
       },
       lawForm: {
         executionFile: "",
@@ -236,8 +243,19 @@ export default {
       this.visibleVerify = true;
     },
     generateResult() {
-      // todo 接入比对接口
-      this.verifyForm.verifyResult = "比对不出来，暂时认为你是对的";
+      this.verifyForm.loading = true;
+      let uuid = this.$route.query && this.$route.query.uuid;
+      let query = {
+        uuid: uuid
+      }
+      verifyContractInfo(query).then((response) => {
+        this.verifyForm.loading = false;
+        console.log(response);
+        if (response.code === 200) {
+          this.verifyForm.verifyResult = response.msg;
+          console.log(this.verifyForm.verifyResult);
+        }
+      })
     },
     agreeForm() {
       let data = {

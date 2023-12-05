@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <el-row>
-      <el-col :span="24" class="card-box">
+      <el-col v-loading="loading" :span="24" class="card-box">
         <el-card>
           <div slot="header"><span>合同基本信息</span></div>
 
@@ -101,6 +101,7 @@ export default {
         needLawSupervise: null,
         notSuperviseReason: null,
       },
+      loading: false,
       rules: {
         contractType: [{
           required: true,
@@ -202,7 +203,9 @@ export default {
         if (!valid) {
           this.$message.error("合同名称不得为空!");
         } else {
+          this.loading = true;
           submitContract(this.formData).then(response => {
+            this.loading = false;
             if (response.code === 200) {
               this.$tab.closeCurrentPage();
               this.$modal.msgSuccess("提交成功");

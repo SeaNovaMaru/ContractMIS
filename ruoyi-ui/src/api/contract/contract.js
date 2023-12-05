@@ -47,3 +47,11 @@ export function executeProcess(data) {
     data: data
   })
 }
+
+export function verifyContractInfo(query) {
+  return request({
+    url: '/contract/verify/info',
+    method: 'get',
+    params: query
+  })
+}

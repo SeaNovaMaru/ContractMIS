@@ -75,8 +75,7 @@ public class ContractController extends BaseController {
 
     @GetMapping("/verify/info")
     public AjaxResult getVerifyInfo(@RequestParam("uuid") String uuid) {
-        // TODO 获取文件并比对
-        return AjaxResult.success("因为我什么也不会，就算你通过了好吧？");
+        return AjaxResult.success(contractService.getVerifyResult(uuid));
     }
 
     @GetMapping("/genration/suggestion")

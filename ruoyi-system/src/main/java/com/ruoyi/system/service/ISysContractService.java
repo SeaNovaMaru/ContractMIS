@@ -25,4 +25,6 @@ public interface ISysContractService {
     List<ContractExecutionInfo> getExecutionInfoList(String uuid);
 
     Map<String, String> generateLawSuggestion(String uuid);
+
+    String getVerifyResult(String uuid);
 }
