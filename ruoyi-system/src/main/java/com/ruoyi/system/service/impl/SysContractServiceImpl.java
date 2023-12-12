@@ -34,15 +34,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -58,6 +57,9 @@ public class SysContractServiceImpl implements ISysContractService {
 
     @Autowired
     private SmartContractUtils smartContractUtils;
+
+    @Value("${lawInfoUrl}")
+    private String lawInfoUrl;
 
 
     @Override
@@ -77,7 +79,7 @@ public class SysContractServiceImpl implements ISysContractService {
     }
 
     @Override
-    public int submitContract(SaveContractParam saveContractParam) {
+    public LoanInfo submitContract(SaveContractParam saveContractParam) {
         log.info("start submitting contract, param is {}", JSON.toJSONString(saveContractParam));
         ContractInfo contractInfo = new ContractInfo();
         BeanUtils.copyBeanProp(contractInfo, saveContractParam);
@@ -94,13 +96,14 @@ public class SysContractServiceImpl implements ISysContractService {
         executionInfo.setExecutionUser(Math.toIntExact(SecurityUtils.getLoginUser().getUserId()));
         executionInfo.setExecutionOperation(ContractExecution.CONTACT_SUBMIT.getStatus());
         executionMapper.insertExecution(executionInfo);
+        LoanInfo loanInfo = null;
         try {
-            LoanInfo loanInfo = formLoanInfo(contractInfo);
-            smartContractUtils.operateContract(loanInfo, "create");
+            loanInfo = formLoanInfo(contractInfo);
         } catch (Exception e) {
-            log.info(e.getMessage());
+            log.error(e.getMessage());
         }
-        return contractMapper.saveContract(contractInfo);
+        contractMapper.saveContract(contractInfo);
+        return loanInfo;
     }
 
     @Override
@@ -165,6 +168,7 @@ public class SysContractServiceImpl implements ISysContractService {
         if (roleIdList.contains(4L)
                 && contractInfo.getContractStatus().equals(ContractStatus.LAW_SUPERVISION.getStatus())) {
             permissionInfo.setSubmit(true);
+            permissionInfo.setLaw(true);
         }
         if (roleIdList.contains(5L)
                 && contractInfo.getContractStatus().equals(ContractStatus.CONTACT_COMPARING.getStatus())) {
@@ -180,9 +184,14 @@ public class SysContractServiceImpl implements ISysContractService {
     }
 
     @Override
-    public Map<String, String> generateLawSuggestion(String uuid) {
-        // todo 生成法律意见文档
-        return new HashMap<>();
+    public String generateLawSuggestion(String uuid) {
+        ContractInfo contractInfo = contractMapper.getDetail(uuid);
+        if (contractInfo == null) {
+            return "";
+        }
+        String fileAbsPath = getFileByUrl(contractInfo.getContractFile());
+        contractMapper.updateContractInfo(uuid, null, 0);
+        return fileAbsPath;
     }
 
     @Override
@@ -192,7 +201,7 @@ public class SysContractServiceImpl implements ISysContractService {
             return "合同不存在";
         }
         try {
-            String fileHash = FileHashGenerator.generateFileHash(getFileUrl(contractInfo.getContractFile()));
+            String fileHash = FileHashGenerator.generateFileHash(getFileByUrl(contractInfo.getContractFile()));
             LoanInfo loanInfo = smartContractUtils.getLoanInfo(uuid);
             if (StringUtils.equals(fileHash, loanInfo.getDocument())) {
                 return "比对结果一致";
@@ -202,6 +211,11 @@ public class SysContractServiceImpl implements ISysContractService {
         } catch (Exception e) {
             return "比对异常";
         }
+    }
+
+    @Override
+    public void updateGenerationResult(String url, Integer status, String contractUuid) {
+        contractMapper.updateContractInfo(contractUuid, url, status);
     }
 
     private TableDataInfo getDataTable(List<?> list) {
@@ -219,14 +233,14 @@ public class SysContractServiceImpl implements ISysContractService {
         loanInfo.setContractName(contractInfo.getContractName());
         loanInfo.setCreator(contractInfo.getOwner());
         loanInfo.setDocType("formal");
-        loanInfo.setDocument(FileHashGenerator.generateFileHash(getFileUrl(contractInfo.getContractFile())));
+        loanInfo.setDocument(FileHashGenerator.generateFileHash(getFileByUrl(contractInfo.getContractFile())));
         loanInfo.setNeedForensicReview(contractInfo.getNeedLawSupervise() == 0 ? "N" : "Y");
         loanInfo.setStatusId("1");
         loanInfo.setCreateDate(System.currentTimeMillis());
         return loanInfo;
     }
 
-    private String getFileUrl(String fileUrl) {
+    private String getFileByUrl(String fileUrl) {
         HttpServletRequest request = ServletUtils.getRequest();
         StringBuffer requestURL = request.getRequestURL();
         String contextPath = request.getServletContext().getContextPath();

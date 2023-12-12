@@ -42,6 +42,8 @@ CREATE TABLE IF NOT EXISTS `sys_contract_info`
     `verify_result`             varchar(256)  DEFAULT NULL COMMENT '比对意见',
     `create_time`               DATETIME      NOT NULL COMMENT '合同创建时间',
     `update_time`               DATETIME      NOT NULL COMMENT '合同更新时间',
+    `law_file`                  VARCHAR(256)  DEFAULT NULL COMMENT '生成法律意见存储路径',
+    `law_file_status`           int(11)       DEFAULT NULL COMMENT '0-生成中，1-已生成',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uuid` (`uuid`) USING BTREE
 ) ENGINE = InnoDB COMMENT ='合同信息表';

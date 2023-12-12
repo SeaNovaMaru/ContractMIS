@@ -2,18 +2,25 @@ package com.ruoyi.web.controller.contract;
 
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.domain.entity.LoanInfo;
 import com.ruoyi.common.core.domain.model.contract.ExecuteContractParam;
 import com.ruoyi.common.core.domain.model.contract.QueryListParam;
 import com.ruoyi.common.core.domain.model.contract.SaveContractParam;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.framework.config.ServerConfig;
+import com.ruoyi.framework.manager.AsyncManager;
+import com.ruoyi.framework.manager.factory.AsyncFactory;
 import com.ruoyi.system.service.ISysContractService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.io.File;
 
 /**
  * 通用请求处理
@@ -26,6 +33,12 @@ public class ContractController extends BaseController {
 
     @Autowired
     private ISysContractService contractService;
+
+    @Value("${lawInfoUrl}")
+    private String lawInfoUrl;
+
+    @Autowired
+    private ServerConfig serverConfig;
 
     /**
      * 保存合同
@@ -40,7 +53,11 @@ public class ContractController extends BaseController {
      */
     @PostMapping("/submit")
     public AjaxResult submitContract(@RequestBody SaveContractParam saveContractParam) {
-        return toAjax(contractService.submitContract(saveContractParam));
+        LoanInfo loanInfo = contractService.submitContract(saveContractParam);
+        if (loanInfo != null) {
+            AsyncManager.me().execute(AsyncFactory.operateSmartContract(loanInfo, "create"));
+        }
+        return AjaxResult.success();
     }
 
     /**
@@ -78,9 +95,11 @@ public class ContractController extends BaseController {
         return AjaxResult.success(contractService.getVerifyResult(uuid));
     }
 
-    @GetMapping("/genration/suggestion")
+    @GetMapping("/generation/suggestion")
     public AjaxResult generateLawSuggestion(@RequestParam("uuid") String uuid) {
-        // TODO 接入并生成法律意见
-        return AjaxResult.success(contractService.generateLawSuggestion(uuid));
+        String absPath = contractService.generateLawSuggestion(uuid);
+        File contractFile = new File(absPath);
+        AsyncManager.me().execute(AsyncFactory.generationLawResponseAsync(contractFile, lawInfoUrl, serverConfig.getUrl(), uuid));
+        return AjaxResult.success();
     }
 }

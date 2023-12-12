@@ -26,4 +26,6 @@ public class ContractPermissionInfo {
     private boolean disagree = false;
 
     private boolean verify = false;
+
+    private boolean law = false;
 }

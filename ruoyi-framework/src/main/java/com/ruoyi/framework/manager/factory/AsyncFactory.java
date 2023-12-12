@@ -1,49 +1,58 @@
 package com.ruoyi.framework.manager.factory;
 
-import java.util.TimerTask;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.ruoyi.common.constant.Constants;
+import com.ruoyi.common.core.domain.entity.LoanInfo;
+import com.ruoyi.common.utils.AnswerExtractor;
 import com.ruoyi.common.utils.LogUtils;
 import com.ruoyi.common.utils.ServletUtils;
+import com.ruoyi.common.utils.SmartContractUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.ip.AddressUtils;
 import com.ruoyi.common.utils.ip.IpUtils;
 import com.ruoyi.common.utils.spring.SpringUtils;
 import com.ruoyi.system.domain.SysLogininfor;
 import com.ruoyi.system.domain.SysOperLog;
+import com.ruoyi.system.service.ISysContractService;
 import com.ruoyi.system.service.ISysLogininforService;
 import com.ruoyi.system.service.ISysOperLogService;
 import eu.bitwalker.useragentutils.UserAgent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.File;
+import java.util.TimerTask;
 
 /**
  * 异步工厂（产生任务用）
- * 
+ *
  * @author ruoyi
  */
-public class AsyncFactory
-{
+public class AsyncFactory {
+
     private static final Logger sys_user_logger = LoggerFactory.getLogger("sys-user");
 
     /**
      * 记录登录信息
-     * 
+     *
      * @param username 用户名
-     * @param status 状态
-     * @param message 消息
-     * @param args 列表
+     * @param status   状态
+     * @param message  消息
+     * @param args     列表
      * @return 任务task
      */
     public static TimerTask recordLogininfor(final String username, final String status, final String message,
-            final Object... args)
-    {
+                                             final Object... args) {
         final UserAgent userAgent = UserAgent.parseUserAgentString(ServletUtils.getRequest().getHeader("User-Agent"));
         final String ip = IpUtils.getIpAddr();
-        return new TimerTask()
-        {
+        return new TimerTask() {
             @Override
-            public void run()
-            {
+            public void run() {
                 String address = AddressUtils.getRealAddressByIP(ip);
                 StringBuilder s = new StringBuilder();
                 s.append(LogUtils.getBlock(ip));
@@ -66,12 +75,9 @@ public class AsyncFactory
                 logininfor.setOs(os);
                 logininfor.setMsg(message);
                 // 日志状态
-                if (StringUtils.equalsAny(status, Constants.LOGIN_SUCCESS, Constants.LOGOUT, Constants.REGISTER))
-                {
+                if (StringUtils.equalsAny(status, Constants.LOGIN_SUCCESS, Constants.LOGOUT, Constants.REGISTER)) {
                     logininfor.setStatus(Constants.SUCCESS);
-                }
-                else if (Constants.LOGIN_FAIL.equals(status))
-                {
+                } else if (Constants.LOGIN_FAIL.equals(status)) {
                     logininfor.setStatus(Constants.FAIL);
                 }
                 // 插入数据
@@ -82,20 +88,75 @@ public class AsyncFactory
 
     /**
      * 操作日志记录
-     * 
+     *
      * @param operLog 操作日志信息
      * @return 任务task
      */
-    public static TimerTask recordOper(final SysOperLog operLog)
-    {
-        return new TimerTask()
-        {
+    public static TimerTask recordOper(final SysOperLog operLog) {
+        return new TimerTask() {
             @Override
-            public void run()
-            {
+            public void run() {
                 // 远程查询操作地点
                 operLog.setOperLocation(AddressUtils.getRealAddressByIP(operLog.getOperIp()));
                 SpringUtils.getBean(ISysOperLogService.class).insertOperlog(operLog);
+            }
+        };
+    }
+
+    public static TimerTask generationLawResponseAsync(final File file, final String infoUrl, final String destUrl, String uuid) {
+        return new TimerTask() {
+            @Override
+            public void run() {
+                RestTemplate restTemplate = new RestTemplate();
+                // 设置表单数据
+                MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+                map.add("query_contract", new FileSystemResource(file));
+                map.add("top_k", "1");
+                map.add("score_threshold", "0.6");
+                map.add("model_name", "zhipu-api");
+                map.add("temperature", "0.6");
+                map.add("max_tokens", "100");
+                map.add("prompt_name", "contract_full");
+                // 发送 POST 请求
+                HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map);
+                ResponseEntity<String> response = restTemplate.postForEntity(infoUrl, requestEntity, String.class);
+                // 打印响应
+                try {
+                    String resultUrl = AnswerExtractor.extractAnswersToDocx(response.getBody(), destUrl);
+                    if (StringUtils.isNotEmpty(resultUrl)) {
+                        SpringUtils.getBean(ISysContractService.class).updateGenerationResult(resultUrl, 1, uuid);
+                    } else {
+                        SpringUtils.getBean(ISysContractService.class).updateGenerationResult(null, 2, uuid);
+                    }
+                } catch (Exception e) {
+                    sys_user_logger.error(e.getMessage());
+                }
+            }
+        };
+    }
+
+    public static TimerTask operateSmartContract(final LoanInfo loanInfo, final String operation) {
+        return new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    SpringUtils.getBean(SmartContractUtils.class).operateContract(loanInfo, operation);
+                } catch (Exception e) {
+                    sys_user_logger.error(e.getMessage());
+                }
+            }
+        };
+    }
+
+    public static TimerTask querySmartContract(final LoanInfo loanInfo, final String operation) {
+        return new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    SpringUtils.getBean(SmartContractUtils.class).operateContract(loanInfo, operation);
+                } catch (Exception e) {
+                    sys_user_logger.error(e.getMessage());
+                }
             }
         };
     }

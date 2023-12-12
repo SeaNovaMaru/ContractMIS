@@ -10,6 +10,9 @@
               <el-button type="primary" v-if="permissionData.edit" size="small" @click="editForm">修改</el-button>
               <el-button type="primary" v-if="permissionData.agree" size="small" @click="agreeForm">同意</el-button>
               <el-button type="primary" v-if="permissionData.verify" size="small" @click="verify">比对</el-button>
+              <el-button type="primary" v-if="permissionData.law && formData.lawFileStatus === null" size="small" @click="generate">生成法律意见书</el-button>
+              <el-button type="primary" v-if="permissionData.law && formData.lawFileStatus === '0'" :loading="true" size="small">法律意见书生成中...</el-button>
+              <el-button type="success" v-if="permissionData.law && formData.lawFileStatus === '1'" size="small" @click="downloadLawFile">下载法律意见书</el-button>
               <el-button type="danger" v-if="permissionData.disagree" size="small" @click="disagreeForm">驳回</el-button>
               <el-button size="small" @click="closeTab">关闭</el-button>
             </div>
@@ -120,7 +123,7 @@
 
 import {getToken} from "../../../utils/auth";
 import {
-  executeProcess,
+  executeProcess, generateSuggestion,
   getContractDetail,
   saveContract,
   submitContract,
@@ -152,6 +155,8 @@ export default {
         verifyResult: null,
         notSuperviseReason: null,
         contractStatus: null,
+        lawFileStatus: null,
+        lawFile: null,
       },
       verifyForm: {
         verifyResult: "",
@@ -351,6 +356,20 @@ export default {
     },
     closeLaw() {
       this.visibleLaw = false;
+    },
+    generate() {
+      let uuid = this.$route.query && this.$route.query.uuid;
+      let query = {
+        uuid: uuid
+      }
+      generateSuggestion(query).then((response) => {
+        if (response.code === 200) {
+          this.formData.lawFileStatus = '0';
+        }
+      })
+    },
+    downloadLawFile() {
+      window.location.href = this.formData.lawFile;
     }
   }
 }

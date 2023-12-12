@@ -16,4 +16,6 @@ public interface SysContractMapper {
     List<ContractListRes> queryList(@Param("param") QueryListParam param);
 
     ContractInfo getDetail(@Param("uuid") String uuid);
+
+    int updateContractInfo(@Param("uuid") String uuid, @Param("url") String url, @Param("status") Integer status);
 }

@@ -55,3 +55,11 @@ export function verifyContractInfo(query) {
     params: query
   })
 }
+
+export function generateSuggestion(query) {
+  return request({
+    url: '/contract/generation/suggestion',
+    method: 'get',
+    params: query
+  })
+}

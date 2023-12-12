@@ -142,3 +142,5 @@ smart-contract:
   keyDirPath: /Users/ruizhang/Documents/其他工作/files/smartContractConfig/users/User1@org1.example.com/msp/keystore
   tlsCertPath: /Users/ruizhang/Documents/其他工作/files/smartContractConfig/peers/peer0.org1.example.com/tls/ca.crt
   overrideAuth: peer0.org1.example.com
+
+lawInfoUrl: http://182.92.178.246:5957/chat/knowledge_base_contractFile_chat

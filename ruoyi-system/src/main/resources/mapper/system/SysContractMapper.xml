@@ -20,6 +20,8 @@
         <result column="verify_result" property="verifyResult" jdbcType="VARCHAR"/>
         <result column="create_time" property="createTime" jdbcType="DATE"/>
         <result column="update_time" property="updateTime" jdbcType="DATE"/>
+        <result column="law_file" property="lawFile" jdbcType="VARCHAR"/>
+        <result column="law_file_status" property="lawFileStatus" jdbcType="INTEGER"/>
     </resultMap>
 
 
@@ -153,4 +155,11 @@
                  left join sys_user userInfo on userInfo.user_id = contract.owner
         where uuid = #{uuid}
     </select>
+
+    <update id="updateContractInfo">
+        update sys_contract_info contract
+        set law_file        = #{url},
+            law_file_status = #{status}
+        where uuid = #{uuid}
+    </update>
 </mapper>
